@@ -16,7 +16,7 @@ class LeafNode(HTMLNode):
     @override
     def to_html(self) -> str:
         if self.value is None:
-            raise ValueError("Leaf node missing value. All leaf nodes must have a value")
+            raise ValueError("Leaf node value attribute is None. Leaf node must have a value")
         if self.tag is None:
             return self.value
         attributes = self.props_to_html()

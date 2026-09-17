@@ -6,11 +6,64 @@ from src.split_nodes import (
     split_nodes_delimeter,
     split_nodes_image,
     split_nodes_link,
+    text_to_textnodes,
 )
 from src.textnode import TextNode, TextType
 
 
 class TestSplitNodes(unittest.TestCase):
+    # Tests for the text to textnodes function
+    def test_text_to_textnodes_plain(self):
+        text = "Just plain text"
+        self.assertListEqual(
+            text_to_textnodes(text), [TextNode("Just plain text", TextType.TEXT)]
+        )
+
+    def test_text_to_textnode_all_types(self):
+        text = (
+            "This is **text** with an _italic_ word and a `code block` and an "
+            "![obi wan image](https://i.imgur.com/fJRm4Q4.jpeg) and a "
+            "[link](https://boot.dev)"
+        )
+        self.assertListEqual(
+            text_to_textnodes(text),
+            [
+                TextNode("This is ", TextType.TEXT),
+                TextNode("text", TextType.BOLD),
+                TextNode(" with an ", TextType.TEXT),
+                TextNode("italic", TextType.ITALIC),
+                TextNode(" word and a ", TextType.TEXT),
+                TextNode("code block", TextType.CODE),
+                TextNode(" and an ", TextType.TEXT),
+                TextNode(
+                    "obi wan image", TextType.IMAGE, "https://i.imgur.com/fJRm4Q4.jpeg"
+                ),
+                TextNode(" and a ", TextType.TEXT),
+                TextNode("link", TextType.LINK, "https://boot.dev"),
+            ],
+        )
+
+    def unclosed_delimeter_raises_on_text_to_textnode(self):
+        with self.assertRaises(ValueError):
+            text_to_textnodes("This has an **unclosed bold")
+
+    def test_text_to_textnode_only_bold(self):
+        text = "**just bold**"
+        self.assertListEqual(
+            text_to_textnodes(text), [TextNode("just bold", TextType.BOLD)]
+        )
+
+    def test_text_to_textnode_with_multiple_same_types(self):
+        text = "**bold1** and **bold2**"
+        self.assertListEqual(
+            text_to_textnodes(text),
+            [
+                TextNode("bold1", TextType.BOLD),
+                TextNode(" and ", TextType.TEXT),
+                TextNode("bold2", TextType.BOLD),
+            ],
+        )
+
     # Tests for the splits noted delimeter function
     def test_bold(self):
         node = TextNode("This is a **bold** text", TextType.TEXT)
@@ -300,7 +353,7 @@ class TestSplitNodes(unittest.TestCase):
     def test_non_text_node_passthrough_for_link_split(self):
         node = TextNode("italic text", TextType.ITALIC)
         self.assertListEqual(split_nodes_link([node]), [node])
-        
+
     # Test chaining both functions
     def test_link_and_image_mixed_in_same_sentence(self):
         node = TextNode(

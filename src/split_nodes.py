@@ -3,6 +3,19 @@ import re
 from src.textnode import TextNode, TextType
 
 
+def text_to_textnodes(text: str) -> list[TextNode]:
+    # Conversion will happen in sequence as follows
+    # bolds -> italics -> code -> imgs -> links
+
+    nodes = [TextNode(text, TextType.TEXT)]
+    nodes = split_nodes_delimeter(nodes, "**", TextType.BOLD)
+    nodes = split_nodes_delimeter(nodes, "_", TextType.ITALIC)
+    nodes = split_nodes_delimeter(nodes, "`", TextType.CODE)
+    nodes = split_nodes_image(nodes)
+    nodes = split_nodes_link(nodes)
+
+    return nodes
+
 def split_nodes_delimeter(old_nodes: list[TextNode], delimeter: str, text_type: TextType) -> list[TextNode]:
     new_nodes = []
 
@@ -27,22 +40,22 @@ def split_nodes_delimeter(old_nodes: list[TextNode], delimeter: str, text_type: 
 
 def split_nodes_image(old_nodes: list[TextNode]) -> list[TextNode]:
     new_nodes = []
-    
+
     if not old_nodes:
         return new_nodes
-        
+
     for current_node in old_nodes:
         if current_node.text_type != TextType.TEXT:
             new_nodes.append(current_node)
             continue
-            
+
         current_text = current_node.text
         matches = extract_markdown_images(current_text)
 
         if not matches:
             new_nodes.append(current_node)
             continue
-            
+
         for match in matches:
             img_alt, img_url = match
             delimeter = f"![{img_alt}]({img_url})"
@@ -50,7 +63,7 @@ def split_nodes_image(old_nodes: list[TextNode]) -> list[TextNode]:
 
             if len(segments) != 2:
                 raise ValueError("invalid markdown, image setion not closed")
-                
+
             text_node = TextNode(segments[0], TextType.TEXT)
             img_node = TextNode(img_alt, TextType.IMAGE, img_url)
 

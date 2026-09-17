@@ -11,7 +11,7 @@ from src.split_inline import (
 from src.textnode import TextNode, TextType
 
 
-class TestSplitNodes(unittest.TestCase):
+class TestSplitInline(unittest.TestCase):
     # Tests for the text to textnodes function
     def test_text_to_textnodes_plain(self):
         text = "Just plain text"

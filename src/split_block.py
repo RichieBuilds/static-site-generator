@@ -15,7 +15,18 @@ def markdown_to_blocks(markdown: str) -> list[str]:
     return final_blocks
 
 def block_to_block_type(markdown: str) -> BlockType:
-    match markdown:
-        case re.findall(r"^#{1, 6} "):
-            return BlockType.HEADING
-        
+    if re.match(r"^#{1,6} ", markdown):
+        return BlockType.HEADING
+    elif re.match(r"^```.*\n[\s\S]*```$", markdown):
+        return BlockType.CODE
+    elif all(re.match(r"^>", line) for line in markdown.split("\n")):
+        return BlockType.QUOTE
+    elif all(re.match(r"^-", line) for line in markdown.split("\n")):
+       return BlockType.UNORDERED_LIST
+    elif all(
+        re.match(rf"^{i + 1}\. ", line)
+        for i, line in enumerate(markdown.split("\n"))
+    ):
+        return BlockType.ORDERED_LIST
+    else:
+        return BlockType.PARAGRAPH

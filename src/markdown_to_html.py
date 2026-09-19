@@ -130,3 +130,12 @@ def text_node_to_html_node(text_node: TextNode) -> HTMLNode:
             return LeafNode(
                 "", tag="img", props={"src": text_node.url, "alt": text_node.text}
             )
+
+
+def extract_title(markdown: str) -> str:
+    lines = markdown.split("\n")
+    
+    for line in lines:
+        if line.startswith("# "):
+            return line[2:].strip()
+    raise ValueError("missing '# ' for markdown title")

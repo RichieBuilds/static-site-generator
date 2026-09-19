@@ -1,6 +1,6 @@
 import unittest
 
-from src.markdown_to_html import markdown_to_html_node
+from src.markdown_to_html import extract_title, markdown_to_html_node
 
 
 class TestMarkdownToHtml(unittest.TestCase):
@@ -106,3 +106,41 @@ stays raw
             "<pre><code>raw code\nstays raw\n</code></pre>"
             "</div>",
         )
+
+    def test_title_as_first_line(self):
+        md = "# My Title\n\nSome body text"
+        self.assertEqual(extract_title(md), "My Title")
+
+    def test_title_not_on_first_line(self):
+        md = "Some intro text\nmore text\n# The Real Title\n\nbody"
+        self.assertEqual(
+            extract_title(md),
+            "The Real Title"
+        )
+
+    def test_extra_spaces_after_hash(self):
+        md = "#         Spaced Out Title"
+        self.assertEqual(
+            extract_title(md),
+            "Spaced Out Title"
+        )
+
+    def test_missing_title_raises(self):
+        md = "Just a paragraph\nwith no heading at all"
+        with self.assertRaises(ValueError):
+            extract_title(md)
+
+    def test_only_single_hash_count_as_title(self):
+        md = "## This is an h2, not a title\n\nbody text"
+        with self.assertRaises(ValueError):
+            extract_title(md)
+
+    def test_ignores_hash_without_space(self):
+        md = "#no-space-here\n# Actual Title"
+        self.assertEqual(
+            extract_title(md),
+            "Actual Title"
+        )
+
+if __name__ == "__main__":
+    unittest.main()

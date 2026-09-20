@@ -6,7 +6,7 @@ from src.markdown_to_html import extract_title, markdown_to_html_node
 logger = logging.getLogger(__name__)
 
 
-def generate_pages_recursive(src: str, dest: str, template_path: str) -> None:
+def generate_pages_recursive(src: str, dest: str, template_path: str, basepath: str) -> None:
     logger.info("Scanning '%s' dir", src)
     for item in os.listdir(src):
         item_path = os.path.join(src, item)
@@ -17,13 +17,13 @@ def generate_pages_recursive(src: str, dest: str, template_path: str) -> None:
             else:
                 page_dest = os.path.join(dest, item, "index.html")
 
-            generate_page(item_path, page_dest, template_path)
+            generate_page(item_path, page_dest, template_path, basepath)
         else:
             new_dest = os.path.join(dest, item)
-            generate_pages_recursive(item_path, new_dest, template_path)
+            generate_pages_recursive(item_path, new_dest, template_path, basepath)
     logger.info("Finished '%s' dir", src)
 
-def generate_page(src: str, dest: str, template_path: str) -> None:
+def generate_page(src: str, dest: str, template_path: str, basepath: str) -> None:
     logger.info(
         "Generating page from '%s' to '%s' using '%s'", src, dest, template_path
     )
@@ -40,6 +40,8 @@ def generate_page(src: str, dest: str, template_path: str) -> None:
 
     html_doc = template.replace("{{ Title }}", page_title)
     html_doc = html_doc.replace("{{ Content }}", html_string)
+    html_doc = html_doc.replace('href="/', f'href="{basepath}')
+    html_doc = html_doc.replace('src="/', f'src="{basepath}')
 
     logger.info("Page generation done")
 
@@ -55,3 +57,10 @@ def generate_page(src: str, dest: str, template_path: str) -> None:
         f.write(html_doc)
 
     logger.info("DONE! Page generated and written at '%s'", dest)
+
+def normalize_basepath(basepath: str) -> str:
+    if not basepath.startswith("/"):
+        basepath = "/" + basepath
+    if not basepath.endswith("/"):
+        basepath = basepath + "/"
+    return basepath
